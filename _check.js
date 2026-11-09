@@ -119,15 +119,18 @@
   /* ---------- GitHub ---------- */
   function ghUrl(path) { return 'https://api.github.com' + path; }
   function gh(method, path, body) {
-    if (!store.token) return Promise.reject(new Error('لا يوجد توكن GitHub — افتح الإعدادات وأدخله'));
+    // القراءة تعمل بدون توكن (المستودعات عامة) — النشر فقط يحتاج التوكن
+    if (!store.token && method !== 'GET') {
+      return Promise.reject(new Error('النشر يحتاج توكن GitHub — افتح الإعدادات وأدخله'));
+    }
     var opt = {
       method: method,
       headers: {
-        'Authorization': 'Bearer ' + store.token,
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28'
       }
     };
+    if (store.token) opt.headers['Authorization'] = 'Bearer ' + store.token;
     if (body) {
       opt.headers['Content-Type'] = 'application/json';
       opt.body = JSON.stringify(body);

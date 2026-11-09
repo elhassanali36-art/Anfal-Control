@@ -85,6 +85,7 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 .items{display:grid;gap:10px;margin-top:14px}
 .item{display:flex;gap:12px;align-items:center;background:var(--card2);border:1px solid var(--line);
   border-radius:14px;padding:10px}
+.item{position:relative}
 .thumb{width:64px;height:64px;border-radius:11px;object-fit:cover;background:#0e0c16;flex:0 0 auto;
   border:1px solid var(--line)}
 .item .t{font-size:14.5px;font-weight:700;margin:0 0 3px}
@@ -118,6 +119,17 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 .sec h3{font-size:14px;margin:0 0 10px;color:var(--gold)}
 .kv{display:grid;grid-template-columns:130px 1fr;gap:8px;font-size:13px}
 .kv div:nth-child(odd){color:var(--mut)}
+.imggrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.imgslot{position:relative;aspect-ratio:1/1;border-radius:12px;border:1px dashed var(--line);
+  background:#0e0c16;overflow:hidden;display:grid;place-items:center;color:#4d4560;font-size:11px}
+.imgslot img{width:100%;height:100%;object-fit:cover;display:block}
+.imgslot .rm{position:absolute;top:4px;inset-inline-end:4px;width:24px;height:24px;border-radius:8px;
+  border:0;background:rgba(10,8,16,.78);color:#ffb3ac;font-size:13px;line-height:1;display:grid;place-items:center;cursor:pointer}
+.imgslot .n{position:absolute;bottom:4px;inset-inline-start:4px;background:rgba(10,8,16,.7);color:#e6c384;
+  font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:999px}
+.imgslot.empty{cursor:pointer;border-style:dashed}
+.imgslot.empty:hover{border-color:var(--gold)}
+@media(max-width:620px){.imggrid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -199,13 +211,13 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 <div id="sheet" class="hide">
   <div class="box">
     <h2><span id="sheetTitle">إضافة</span><button class="mini" id="sheetClose">✕</button></h2>
-    <img class="imgprev" id="imgPrev" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 150'%3E%3Crect width='300' height='150' fill='%230e0c16'/%3E%3Ctext x='150' y='80' text-anchor='middle' fill='%235d5470' font-size='14' font-family='sans-serif'%3Eلا صورة%3C/text%3E%3C/svg%3E">
+    <div class="imggrid" id="imgGrid"></div>
     <div class="row" style="margin-bottom:12px">
-      <input type="file" id="imgFile" accept="image/*" class="hide">
-      <button class="btn ghost sm" id="btnPickImg">رفع صورة من الجهاز</button>
+      <input type="file" id="imgFile" accept="image/*" multiple class="hide">
+      <button class="btn ghost sm" id="btnPickImg">رفع صور من الجهاز (حتى 4)</button>
       <button class="btn ghost sm" id="btnClearImg">حذف الصورة</button>
     </div>
-    <div class="field"><label>مسار الصورة أو رابطها</label><input id="fImage" placeholder="img/example.jpg أو https://..."></div>
+    <div class="field"><label>مسار صورة أو رابطها (اختياري)</label><div style="display:flex;gap:8px"><input id="fImage" placeholder="img/example.jpg أو https://..."><button class="btn ghost sm" id="btnAddImgPath" style="flex:0 0 auto">إضافة</button></div></div>
     <div class="field"><label>العنوان *</label><input id="fTitle" placeholder="مثال: تويوتا هايلوكس 2026"></div>
     <div class="f2">
       <div class="field"><label>السنة / الموديل</label><input id="fYear" placeholder="2026"></div>
@@ -293,7 +305,9 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
   var dirty = false;
   var sha = null;
   var editingId = null;
-  var pendingImage = null;  // {name, dataUrl}
+  var editImages = [];       // مسارات/روابط الصور (حتى 4)
+  var pendingImageMap = {};  // name -> {base64}
+  var MAX_IMAGES = 4;
 
   function load() {
     try {
@@ -525,8 +539,10 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
       return;
     }
     $('#items').innerHTML = list.map(function (it) {
-      var img = it.image
-        ? '<img class="thumb" src="' + esc(imgSrc(it.image)) + '" alt="" onerror="this.style.opacity=.25">'
+      var itImgs = (Array.isArray(it.images) && it.images.length ? it.images : (it.image ? [it.image] : [])).filter(Boolean);
+      var img = itImgs.length
+        ? '<img class="thumb" src="' + esc(imgSrc(itImgs[0])) + '" alt="" onerror="this.style.opacity=.25">'
+          + (itImgs.length > 1 ? '<span style="position:absolute;bottom:2px;inset-inline-start:2px;background:rgba(10,8,16,.8);color:#e6c384;font-size:10px;padding:1px 5px;border-radius:6px">' + itImgs.length + '</span>' : '')
         : '<div class="thumb" style="display:grid;place-items:center;color:#4d4560;font-size:11px">بلا صورة</div>';
       var sub = [it.year, it.category, it.place].filter(Boolean).join(' • ');
       var price = it.price ? (it.price + ' ' + (it.priceUnit || '')) : '—';
@@ -604,32 +620,85 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
       fDealer: it ? it.dealer : '',
       fCommission: it ? it.commission : '',
       fCommissionNote: it ? it.commissionNote : '',
-      fImage: it ? it.image : '',
+      fImage: '',
       fSpecs: it && it.specs ? it.specs.join('\n') : ''
     };
     Object.keys(f).forEach(function (k) { $('#' + k).value = f[k] || ''; });
     $('#fPriceUnit').value = (it && it.priceUnit) ? it.priceUnit : 'مليون';
-    pendingImage = null;
-    setPreview(it ? it.image : '');
+    editImages = it ? (Array.isArray(it.images) && it.images.length ? it.images.slice(0, MAX_IMAGES) : (it.image ? [it.image] : [])) : [];
+    pendingImageMap = {};
+    renderImgGrid();
     $('#itemErr').textContent = '';
     $('#sheet').classList.remove('hide');
   }
-  function setPreview(v) {
-    $('#imgPrev').src = v ? imgSrc(v) : 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 300 150%27%3E%3Crect width=%27300%27 height=%27150%27 fill=%27%230e0c16%27/%3E%3Ctext x=%27150%27 y=%2780%27 text-anchor=%27middle%27 fill=%27%235d5470%27 font-size=%2714%27 font-family=%27sans-serif%27%3Eلا صورة%3C/text%3E%3C/svg%3E';
+  function renderImgGrid() {
+    var box = $('#imgGrid');
+    if (!box) return;
+    var html = '';
+    for (var i = 0; i < MAX_IMAGES; i++) {
+      var src = editImages[i];
+      if (src) {
+        html += '<div class="imgslot">' +
+          '<img src="' + esc(imgSrc(src)) + '" alt="" onerror="this.style.opacity=.25">' +
+          '<span class="n">' + (i === 0 ? 'الغلاف' : 'صورة ' + (i + 1)) + '</span>' +
+          '<button class="rm" data-i="' + i + '" title="إزالة">✕</button>' +
+        '</div>';
+      } else {
+        html += '<div class="imgslot empty" data-add="1" title="إضافة صورة">+ صورة ' + (i + 1) + '</div>';
+      }
+    }
+    box.innerHTML = html;
+    Array.prototype.forEach.call(box.querySelectorAll('.rm'), function (b) {
+      b.addEventListener('click', function () {
+        var i = Number(b.getAttribute('data-i'));
+        var removed = editImages.splice(i, 1)[0];
+        if (removed && pendingImageMap[removed]) delete pendingImageMap[removed];
+        renderImgGrid();
+      });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll('[data-add]'), function (b) {
+      b.addEventListener('click', function () { $('#imgFile').click(); });
+    });
+  }
+  function addImageValue(v) {
+    v = String(v || '').trim();
+    if (!v) return;
+    if (editImages.length >= MAX_IMAGES) { toast('الحد الأقصى ' + MAX_IMAGES + ' صور', 'bad'); return; }
+    if (editImages.indexOf(v) !== -1) return;
+    editImages.push(v);
+    renderImgGrid();
   }
   $('#sheetClose').addEventListener('click', function () { $('#sheet').classList.add('hide'); });
   $('#btnCancelItem').addEventListener('click', function () { $('#sheet').classList.add('hide'); });
-  $('#fImage').addEventListener('input', function () { setPreview($('#fImage').value); });
-  $('#btnClearImg').addEventListener('click', function () { $('#fImage').value = ''; pendingImage = null; setPreview(''); });
+  $('#btnAddImgPath').addEventListener('click', function () {
+    addImageValue($('#fImage').value);
+    $('#fImage').value = '';
+  });
+  $('#fImage').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); addImageValue(this.value); this.value = ''; }
+  });
+  $('#btnClearImg').addEventListener('click', function () {
+    editImages = []; pendingImageMap = {}; $('#fImage').value = ''; renderImgGrid();
+  });
   $('#btnPickImg').addEventListener('click', function () { $('#imgFile').click(); });
   $('#imgFile').addEventListener('change', function (e) {
-    var file = e.target.files && e.target.files[0];
-    if (!file) return;
-    compress(file).then(function (out) {
-      pendingImage = out;
-      $('#imgPrev').src = out.dataUrl;
-      toast('تم تجهيز الصورة (' + Math.round(out.blob.length / 1024) + ' كيلوبايت)', 'ok');
-    }).catch(function (err) { toast(err.message, 'bad'); });
+    var files = Array.prototype.slice.call((e.target.files || []));
+    if (!files.length) return;
+    var room = MAX_IMAGES - editImages.length;
+    if (room <= 0) { toast('عندك ' + MAX_IMAGES + ' صور بالفعل', 'bad'); e.target.value = ''; return; }
+    var take = files.slice(0, room);
+    var done = 0;
+    take.forEach(function (file) {
+      compress(file).then(function (out) {
+        var name = 'img/' + slugify($('#fTitle').value || 'item') + '-' + Date.now().toString().slice(-6) + '-' + (editImages.length + 1) + '.jpg';
+        pendingImageMap[name] = out.base64;
+        editImages.push(name);
+        done++;
+        renderImgGrid();
+        toast('تم تجهيز ' + done + ' من ' + take.length + ' صورة', 'ok');
+        if (files.length > room) toast('أُخذت ' + room + ' صور فقط (الحد ' + MAX_IMAGES + ')', 'bad');
+      }).catch(function (err) { toast(err.message, 'bad'); });
+    });
     e.target.value = '';
   });
   function compress(file) {
@@ -673,7 +742,8 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
       year: $('#fYear').value.trim(),
       category: $('#fCategory').value.trim(),
       badge: $('#fBadge').value.trim(),
-      image: $('#fImage').value.trim(),
+      image: (editImages[0] || ''),
+      images: editImages.slice(0, MAX_IMAGES),
       imageNote: '',
       price: price,
       priceUnit: $('#fPriceUnit').value,
@@ -684,12 +754,8 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
       dealer: $('#fDealer').value.trim(),
       specs: $('#fSpecs').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
     };
-    // صور مرفوعة من الجهاز: نحفظها محلياً للرفع عند النشر
-    if (pendingImage) {
-      var name = 'img/' + slugify(title) + '-' + Date.now().toString().slice(-5) + '.jpg';
-      item.image = name;
-      pendingImages[name] = pendingImage.base64;
-    }
+    // صور مرفوعة من الجهاز: تُحفظ للرفع عند النشر
+    Object.keys(pendingImageMap).forEach(function (name) { pendingImages[name] = pendingImageMap[name]; });
     if (editingId) {
       for (var i = 0; i < data.cars.length; i++) {
         if (String(data.cars[i].id) === String(editingId)) { data.cars[i] = item; break; }

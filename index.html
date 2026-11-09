@@ -275,12 +275,17 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
       { key: 'cars', name: 'الدلالة — السيارات', repo: 'Al-Dalala', branch: 'main', dataPath: 'data.js',
         webUrl: 'https://elhassanali36-art.github.io/Al-Dalala/', itemLabel: 'سيارة', color: '#e6c384' },
       { key: 'phones', name: 'الجوالات', repo: 'Anfal-Phones', branch: 'main', dataPath: 'data.js',
-        webUrl: '', itemLabel: 'جوال', color: '#8b6cf0' },
-      { key: 'market', name: 'السوبرماركت', repo: 'Anfal-Market', branch: 'main', dataPath: 'data.js',
-        webUrl: '', itemLabel: 'منتج', color: '#39b978' },
+        webUrl: 'https://elhassanali36-art.github.io/Anfal-Phones/', itemLabel: 'جوال', color: '#8b6cf0' },
+      { key: 'market', name: 'السوبرماركت', repo: 'Anfal-Supermarket', branch: 'main', dataPath: 'data.js',
+        webUrl: 'https://elhassanali36-art.github.io/Anfal-Supermarket/', itemLabel: 'منتج', color: '#35c07f' },
       { key: 'estate', name: 'العقارات', repo: 'Anfal-Estate', branch: 'main', dataPath: 'data.js',
-        webUrl: '', itemLabel: 'عقار', color: '#e08a4c' }
-    ]
+        webUrl: 'https://elhassanali36-art.github.io/Anfal-Estate/', itemLabel: 'عقار', color: '#e59a4c' },
+      { key: 'anaam', name: 'سوق الأنعام', repo: 'Anfal-Anaam', branch: 'main', dataPath: 'data.js',
+        webUrl: 'https://elhassanali36-art.github.io/Anfal-Anaam/', itemLabel: 'رأس', color: '#d9b26a' },
+      { key: 'crops', name: 'سوق المحاصيل', repo: 'Anfal-Crops', branch: 'main', dataPath: 'data.js',
+        webUrl: 'https://elhassanali36-art.github.io/Anfal-Crops/', itemLabel: 'محصول', color: '#9ecb46' }
+    ],
+    ver: 2
   };
 
   var store = load();
@@ -301,6 +306,19 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
       out.pinHash = v.pinHash || '';
       out.current = v.current || 'cars';
       if (Array.isArray(v.apps) && v.apps.length) out.apps = v.apps;
+      // ترقية: نضيف التطبيقات الجديدة ونحدّث المسارات دون المساس بتعديلات المالك
+      if ((v.ver || 1) < 2) {
+        DEFAULTS.apps.forEach(function (da) {
+          var found = null;
+          out.apps.forEach(function (a) { if (a.key === da.key) found = a; });
+          if (!found) out.apps.push(JSON.parse(JSON.stringify(da)));
+          else {
+            found.webUrl = da.webUrl;
+            if (da.key === 'market' && found.repo === 'Anfal-Market') found.repo = da.repo;
+          }
+        });
+      }
+      out.ver = DEFAULTS.ver;
       return out;
     } catch (e) { return JSON.parse(JSON.stringify(DEFAULTS)); }
   }

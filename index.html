@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة التحكم | تطبيقات الأنفال</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23120f1c'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='%23e6c384' font-family='sans-serif'%3Eع%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0b0910; --bg2:#12101b; --card:#171426; --card2:#1e1a30;
+  --line:#2b2540; --txt:#f3f0ea; --mut:#9d95b5;
+  --gold:#e6c384; --gold2:#b9862f; --vio:#8b6cf0; --ok:#39b978; --bad:#e2574c;
+  --r:16px; --shadow:0 18px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:radial-gradient(1100px 600px at 85% -10%, #241b3d 0%, transparent 60%),
+             radial-gradient(900px 500px at 5% 0%, #1d1730 0%, transparent 55%), var(--bg);
+  color:var(--txt);font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif;
+  min-height:100vh;-webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:inherit}
+button{cursor:pointer}
+.hide{display:none !important}
+
+/* شاشة القفل */
+#lock{min-height:100vh;display:grid;place-items:center;padding:24px}
+.lockcard{width:100%;max-width:400px;background:linear-gradient(180deg,var(--card),var(--bg2));
+  border:1px solid var(--line);border-radius:24px;padding:28px 24px;box-shadow:var(--shadow)}
+.brandmark{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;margin:0 auto 14px;
+  background:linear-gradient(140deg,var(--gold),var(--gold2));color:#1a1206;font-weight:800;font-size:30px}
+.lockcard h1{font-size:20px;margin:0 0 6px;text-align:center}
+.lockcard p{color:var(--mut);font-size:13px;line-height:1.7;text-align:center;margin:0 0 18px}
+input,select,textarea{width:100%;background:#0f0d18;border:1px solid var(--line);color:var(--txt);
+  border-radius:12px;padding:12px 14px;font-size:14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--vio);box-shadow:0 0 0 3px rgba(139,108,240,.18)}
+label{display:block;font-size:12.5px;color:var(--mut);margin:0 0 6px}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-size:14.5px;font-weight:700;
+  display:inline-flex;align-items:center;gap:8px;justify-content:center;transition:.15s}
+.btn:active{transform:translateY(1px)}
+.btn.gold{background:linear-gradient(140deg,var(--gold),var(--gold2));color:#1a1206}
+.btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+.btn.vio{background:linear-gradient(140deg,#a184f7,#6f4fe0);color:#fff}
+.btn.ok{background:linear-gradient(140deg,#4ccf8a,#2c9b66);color:#06210f}
+.btn.bad{background:transparent;color:#ff8b80;border:1px solid #5a2c2c}
+.btn.sm{padding:8px 12px;font-size:13px;border-radius:10px}
+.btn.full{width:100%}
+.hint{font-size:12px;color:var(--mut);line-height:1.7}
+.err{color:#ff9a90;font-size:12.5px;margin-top:10px;line-height:1.6}
+.okmsg{color:#7ee0a8;font-size:12.5px;margin-top:10px;line-height:1.6}
+
+/* الشريط العلوي */
+header{position:sticky;top:0;z-index:30;backdrop-filter:blur(14px);
+  background:rgba(11,9,16,.82);border-bottom:1px solid var(--line)}
+.hbar{max-width:1180px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.hlogo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto;
+  background:linear-gradient(140deg,var(--gold),var(--gold2));color:#1a1206;font-weight:800;font-size:20px}
+.htitle b{display:block;font-size:15px;line-height:1.2}
+.htitle span{font-size:11.5px;color:var(--mut)}
+.hspacer{flex:1}
+.iconbtn{background:transparent;border:1px solid var(--line);color:var(--txt);border-radius:11px;
+  padding:9px 12px;font-size:13px}
+
+main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 14px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;background:var(--card);border:1px solid var(--line);color:var(--mut);
+  border-radius:999px;padding:10px 16px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+.tab.on{background:linear-gradient(140deg,var(--gold),var(--gold2));color:#1a1206;border-color:transparent}
+.tab small{opacity:.75;font-size:11px}
+
+.panel{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);
+  border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.grid{display:grid;gap:12px}
+.meta{font-size:12.5px;color:var(--mut);line-height:1.7}
+.pill{font-size:11.5px;padding:4px 10px;border-radius:999px;background:#221c38;color:var(--gold);border:1px solid #332a52}
+.pill.ok{background:#10281d;color:#7ee0a8;border-color:#1e4a35}
+.pill.bad{background:#2a1414;color:#ff9a90;border-color:#4d2727}
+
+.items{display:grid;gap:10px;margin-top:14px}
+.item{display:flex;gap:12px;align-items:center;background:var(--card2);border:1px solid var(--line);
+  border-radius:14px;padding:10px}
+.thumb{width:64px;height:64px;border-radius:11px;object-fit:cover;background:#0e0c16;flex:0 0 auto;
+  border:1px solid var(--line)}
+.item .t{font-size:14.5px;font-weight:700;margin:0 0 3px}
+.item .s{font-size:12px;color:var(--mut);margin:0;line-height:1.6}
+.price{font-size:13.5px;font-weight:800;color:var(--gold);white-space:nowrap}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.mini{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:9px;
+  width:32px;height:32px;display:grid;place-items:center;font-size:14px}
+.mini:hover{color:var(--txt);border-color:var(--vio)}
+.mini.del:hover{color:#ff8b80;border-color:#5a2c2c}
+
+/* النافذة */
+#sheet{position:fixed;inset:0;z-index:60;display:grid;place-items:end center;background:rgba(4,3,8,.7);
+  backdrop-filter:blur(4px);padding:0}
+#sheet .box{width:100%;max-width:720px;max-height:94vh;overflow:auto;background:var(--bg2);
+  border:1px solid var(--line);border-radius:22px 22px 0 0;padding:18px 18px 26px}
+#sheet .box h2{font-size:17px;margin:0 0 14px;display:flex;justify-content:space-between;align-items:center}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:620px){.f2{grid-template-columns:1fr}}
+.field{margin-bottom:12px}
+.imgprev{width:100%;height:150px;object-fit:cover;border-radius:12px;border:1px dashed var(--line);
+  background:#0e0c16;display:block;margin-bottom:8px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:90;
+  background:#1b2432;border:1px solid #2f4056;color:#dfeaff;padding:12px 18px;border-radius:12px;
+  font-size:13.5px;box-shadow:var(--shadow);max-width:92vw;text-align:center}
+.toast.ok{background:#10281d;border-color:#1e4a35;color:#b8f3d1}
+.toast.bad{background:#2a1414;border-color:#4d2727;color:#ffc3bd}
+.log{font-family:ui-monospace,monospace;font-size:11.5px;color:var(--mut);background:#0c0a14;
+  border:1px solid var(--line);border-radius:10px;padding:10px;max-height:140px;overflow:auto;white-space:pre-wrap}
+.sec{margin-top:18px}
+.sec h3{font-size:14px;margin:0 0 10px;color:var(--gold)}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:8px;font-size:13px}
+.kv div:nth-child(odd){color:var(--mut)}
+</style>
+</head>
+<body>
+
+<!-- شاشة القفل -->
+<section id="lock">
+  <div class="lockcard">
+    <div class="brandmark">ع</div>
+    <h1>لوحة التحكم</h1>
+    <p id="lockHint">أدخل رمز الدخول للوصول إلى تطبيقاتك</p>
+    <div id="lockFields">
+      <div class="field"><label>رمز الدخول</label><input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="••••"></div>
+      <div class="field hide" id="pin2wrap"><label>تأكيد الرمز</label><input id="pin2" type="password" inputmode="numeric" autocomplete="off" placeholder="••••"></div>
+      <button class="btn gold full" id="lockBtn">دخول</button>
+      <div class="err" id="lockErr"></div>
+    </div>
+    <p class="hint" style="margin-top:16px">الصفحة على الإنترنت، لكن التعديل والنشر يحتاج رمزك ومفتاح GitHub المحفوظ في متصفحك فقط. لا يمكن لأي زائر آخر عمل تغيير.</p>
+  </div>
+</section>
+
+<!-- التطبيق -->
+<div id="app" class="hide">
+  <header>
+    <div class="hbar">
+      <div class="hlogo">ع</div>
+      <div class="htitle"><b>لوحة التحكم</b><span>تطبيقات الأنفال — إدارة المنتجات والنشر</span></div>
+      <div class="hspacer"></div>
+      <button class="iconbtn" id="btnSettings">الإعدادات</button>
+      <button class="iconbtn" id="btnLock">قفل</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs" id="tabs"></div>
+
+    <div class="panel" id="appPanel">
+      <div class="row between">
+        <div class="grow">
+          <div class="row" style="gap:10px">
+            <h2 id="appName" style="font-size:17px;margin:0"></h2>
+            <span class="pill" id="appState">—</span>
+          </div>
+          <div class="meta" id="appMeta"></div>
+        </div>
+        <div class="acts">
+          <button class="btn ghost sm" id="btnOpenApp">فتح التطبيق</button>
+          <button class="btn gold sm" id="btnAdd">+ إضافة</button>
+        </div>
+      </div>
+      <div class="items" id="items"></div>
+      <div class="err" id="appErr"></div>
+    </div>
+
+    <div class="panel sec" id="publishPanel">
+      <div class="row between">
+        <div class="grow">
+          <h3 style="margin:0">نشر التغييرات</h3>
+          <div class="meta" id="dirtyMeta">لا توجد تغييرات غير منشورة</div>
+        </div>
+        <div class="acts">
+          <button class="btn ghost sm" id="btnReload">إعادة تحميل</button>
+          <button class="btn vio sm" id="btnPublish">نشر الآن</button>
+        </div>
+      </div>
+      <div class="log" id="log" style="margin-top:12px">جاهز.</div>
+    </div>
+
+    <div class="panel sec" id="settingsPanelWrap">
+      <div class="row between">
+        <h3 style="margin:0;color:var(--gold);font-size:14px">بيانات المتجر في هذا التطبيق</h3>
+        <button class="btn ghost sm" id="btnEditSettings">تعديل</button>
+      </div>
+      <div class="kv" id="settingsView" style="margin-top:12px"></div>
+    </div>
+  </main>
+</div>
+
+<!-- نافذة الإضافة/التعديل -->
+<div id="sheet" class="hide">
+  <div class="box">
+    <h2><span id="sheetTitle">إضافة</span><button class="mini" id="sheetClose">✕</button></h2>
+    <img class="imgprev" id="imgPrev" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 150'%3E%3Crect width='300' height='150' fill='%230e0c16'/%3E%3Ctext x='150' y='80' text-anchor='middle' fill='%235d5470' font-size='14' font-family='sans-serif'%3Eلا صورة%3C/text%3E%3C/svg%3E">
+    <div class="row" style="margin-bottom:12px">
+      <input type="file" id="imgFile" accept="image/*" class="hide">
+      <button class="btn ghost sm" id="btnPickImg">رفع صورة من الجهاز</button>
+      <button class="btn ghost sm" id="btnClearImg">حذف الصورة</button>
+    </div>
+    <div class="field"><label>مسار الصورة أو رابطها</label><input id="fImage" placeholder="img/example.jpg أو https://..."></div>
+    <div class="field"><label>العنوان *</label><input id="fTitle" placeholder="مثال: تويوتا هايلوكس 2026"></div>
+    <div class="f2">
+      <div class="field"><label>السنة / الموديل</label><input id="fYear" placeholder="2026"></div>
+      <div class="field"><label>الفئة</label><input id="fCategory" placeholder="دفع رباعي / جوال / شقة"></div>
+      <div class="field"><label>شارة صغيرة</label><input id="fBadge" placeholder="ترخيص جديد"></div>
+      <div class="field"><label>المكان</label><input id="fPlace" placeholder="الخرطوم"></div>
+    </div>
+    <div class="f2">
+      <div class="field"><label>السعر *</label><input id="fPrice" placeholder="820"></div>
+      <div class="field"><label>وحدة السعر</label>
+        <select id="fPriceUnit"><option>مليون</option><option>مليار</option><option>ألف</option><option>جنيه</option><option>دولار</option></select>
+      </div>
+      <div class="field"><label>ملاحظة السعر</label><input id="fPriceNote" placeholder="تفاوض معقول"></div>
+      <div class="field"><label>الجهة / المتجر</label><input id="fDealer" placeholder="الفارس للسيارات"></div>
+      <div class="field"><label>العمولة</label><input id="fCommission" placeholder="5 مليون"></div>
+      <div class="field"><label>ملاحظة العمولة</label><input id="fCommissionNote" placeholder="ثابتة من المشتري"></div>
+    </div>
+    <div class="field"><label>المواصفات (كل مواصفة في سطر)</label><textarea id="fSpecs" rows="6" placeholder="قير أوتوماتيك&#10;تكييف بارد"></textarea></div>
+    <div class="row">
+      <button class="btn gold grow" id="btnSaveItem">حفظ</button>
+      <button class="btn ghost" id="btnCancelItem">إلغاء</button>
+    </div>
+    <div class="err" id="itemErr"></div>
+  </div>
+</div>
+
+<!-- نافذة الإعدادات -->
+<div id="sheet2" class="hide">
+  <div class="box">
+    <h2><span>الإعدادات</span><button class="mini" id="sheet2Close">✕</button></h2>
+    <div class="sec" style="margin-top:0">
+      <h3>حساب GitHub (مفتاح النشر)</h3>
+      <div class="field"><label>اسم المستخدم</label><input id="sOwner" placeholder="elhassanali36-art"></div>
+      <div class="field"><label>التوكن (Fine-grained، صلاحية Contents فقط)</label><input id="sToken" type="password" placeholder="github_pat_..."></div>
+      <p class="hint">التوكن يُخزَّن في هذا المتصفح فقط، ولا يُرسل لأي مكان غير github.com. لو غيّرت الجهاز أدخله من جديد.</p>
+    </div>
+    <div class="sec">
+      <h3>التطبيقات</h3>
+      <div id="appsEditor"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost sm" id="btnAddApp">+ تطبيق جديد</button>
+      </div>
+    </div>
+    <div class="sec">
+      <h3>نسخة احتياطية</h3>
+      <div class="row">
+        <button class="btn ghost sm" id="btnExport">تنزيل نسخة JSON</button>
+        <button class="btn ghost sm" id="btnImport">استيراد نسخة</button>
+        <input type="file" id="importFile" accept=".json" class="hide">
+      </div>
+    </div>
+    <div class="row" style="margin-top:18px"><button class="btn gold full" id="btnSaveSettings">حفظ الإعدادات</button></div>
+    <div class="okmsg" id="setMsg"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var LS = 'anfal.control.v1';
+  var DEFAULTS = {
+    owner: 'elhassanali36-art',
+    token: '',
+    pinHash: '',
+    current: 'cars',
+    apps: [
+      { key: 'cars', name: 'الدلالة — السيارات', repo: 'Al-Dalala', branch: 'main', dataPath: 'data.js',
+        webUrl: 'https://elhassanali36-art.github.io/Al-Dalala/', itemLabel: 'سيارة', color: '#e6c384' },
+      { key: 'phones', name: 'الجوالات', repo: 'Anfal-Phones', branch: 'main', dataPath: 'data.js',
+        webUrl: '', itemLabel: 'جوال', color: '#8b6cf0' },
+      { key: 'market', name: 'السوبرماركت', repo: 'Anfal-Market', branch: 'main', dataPath: 'data.js',
+        webUrl: '', itemLabel: 'منتج', color: '#39b978' },
+      { key: 'estate', name: 'العقارات', repo: 'Anfal-Estate', branch: 'main', dataPath: 'data.js',
+        webUrl: '', itemLabel: 'عقار', color: '#e08a4c' }
+    ]
+  };
+
+  var store = load();
+  var data = null;          // { settings:{}, cars:[] }
+  var dirty = false;
+  var sha = null;
+  var editingId = null;
+  var pendingImage = null;  // {name, dataUrl}
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(LS);
+      if (!raw) return JSON.parse(JSON.stringify(DEFAULTS));
+      var v = JSON.parse(raw);
+      var out = JSON.parse(JSON.stringify(DEFAULTS));
+      out.owner = v.owner || out.owner;
+      out.token = v.token || '';
+      out.pinHash = v.pinHash || '';
+      out.current = v.current || 'cars';
+      if (Array.isArray(v.apps) && v.apps.length) out.apps = v.apps;
+      return out;
+    } catch (e) { return JSON.parse(JSON.stringify(DEFAULTS)); }
+  }
+  function save() { try { localStorage.setItem(LS, JSON.stringify(store)); } catch (e) {} }
+
+  function $(s) { return document.querySelector(s); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
+  function toast(msg, kind) {
+    var t = document.createElement('div');
+    t.className = 'toast ' + (kind || '');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function () { t.style.opacity = '0'; t.style.transition = '.3s'; }, 2600);
+    setTimeout(function () { t.remove(); }, 3100);
+  }
+  function log(msg) {
+    var el = $('#log');
+    el.textContent = (msg + '\n' + el.textContent).slice(0, 4000);
+  }
+  function currentApp() {
+    for (var i = 0; i < store.apps.length; i++) if (store.apps[i].key === store.current) return store.apps[i];
+    return store.apps[0];
+  }
+
+  /* ---------- الأمان ---------- */
+  function sha256(text) {
+    var enc = new TextEncoder().encode(text);
+    return crypto.subtle.digest('SHA-256', enc).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+        return ('00' + b.toString(16)).slice(-2);
+      }).join('');
+    });
+  }
+  function showLock() {
+    $('#lock').classList.remove('hide');
+    $('#app').classList.add('hide');
+    $('#pin2wrap').classList.toggle('hide', !!store.pinHash);
+    $('#lockHint').textContent = store.pinHash ? 'أدخل رمز الدخول للوصول إلى تطبيقاتك' : 'اختر رمز دخول (4 أرقام أو أكثر) لحماية اللوحة';
+    $('#lockBtn').textContent = store.pinHash ? 'دخول' : 'إنشاء الرمز والدخول';
+    setTimeout(function () { $('#pin').focus(); }, 200);
+  }
+  $('#lockBtn').addEventListener('click', function () {
+    var pin = $('#pin').value.trim();
+    var err = $('#lockErr');
+    err.textContent = '';
+    if (pin.length < 4) { err.textContent = 'الرمز قصير — 4 خانات على الأقل'; return; }
+    if (!store.pinHash) {
+      var pin2 = $('#pin2').value.trim();
+      if (pin !== pin2) { err.textContent = 'الرمز والتأكيد غير متطابقين'; return; }
+      sha256(pin).then(function (h) {
+        store.pinHash = h; save();
+        enterApp();
+      });
+      return;
+    }
+    sha256(pin).then(function (h) {
+      if (h !== store.pinHash) { err.textContent = 'رمز غير صحيح'; return; }
+      enterApp();
+    });
+  });
+  $('#pin').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') $('#lockBtn').click();
+  });
+  $('#pin2').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') $('#lockBtn').click();
+  });
+  function enterApp() {
+    $('#lock').classList.add('hide');
+    $('#app').classList.remove('hide');
+    $('#pin').value = ''; $('#pin2').value = '';
+    renderTabs();
+    loadApp();
+  }
+  $('#btnLock').addEventListener('click', showLock);
+
+  /* ---------- GitHub ---------- */
+  function ghUrl(path) { return 'https://api.github.com' + path; }
+  function gh(method, path, body) {
+    if (!store.token) return Promise.reject(new Error('لا يوجد توكن GitHub — افتح الإعدادات وأدخله'));
+    var opt = {
+      method: method,
+      headers: {
+        'Authorization': 'Bearer ' + store.token,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    };
+    if (body) {
+      opt.headers['Content-Type'] = 'application/json';
+      opt.body = JSON.stringify(body);
+    }
+    return fetch(ghUrl(path), opt).then(function (r) {
+      if (r.status === 404) return null;
+      return r.json().then(function (j) {
+        if (!r.ok) {
+          var m = (j && j.message) ? j.message : ('HTTP ' + r.status);
+          throw new Error(m);
+        }
+        return j;
+      });
+    });
+  }
+  function b64enc(text) {
+    var bytes = new TextEncoder().encode(text);
+    var bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function b64dec(b64) {
+    var clean = String(b64 || '').replace(/\s/g, '');
+    var bin = atob(clean);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  /* ---------- تحميل بيانات التطبيق ---------- */
+  function loadApp() {
+    var app = currentApp();
+    data = null; sha = null; dirty = false;
+    $('#appName').textContent = app.name;
+    $('#appState').textContent = 'جارِ التحميل';
+    $('#appState').className = 'pill';
+    $('#items').innerHTML = '';
+    $('#appErr').textContent = '';
+    $('#appMeta').textContent = app.repo + ' / ' + app.dataPath;
+    var url = '/repos/' + store.owner + '/' + app.repo + '/contents/' + encodeURI(app.dataPath) + '?ref=' + (app.branch || 'main');
+    sha256(store.current + ':' + Date.now()).then(function () {});
+    // fetch مباشر بدون توكن للقراءة العامة أيضاً
+    gh('GET', url).then(function (res) {
+      if (!res) {
+        data = { settings: { name: app.name, whatsapp: '', phone: '' }, cars: [] };
+        $('#appState').textContent = 'ملف البيانات غير موجود — سيُنشأ عند النشر';
+        $('#appState').className = 'pill bad';
+        renderSettings(); renderItems();
+        return;
+      }
+      sha = res.sha;
+      var text = b64dec(res.content);
+      data = parseDataFile(text);
+      $('#appState').textContent = 'جاهز';
+      $('#appState').className = 'pill ok';
+      renderSettings(); renderItems(); updateDirty();
+      log('تم تحميل ' + (data.cars ? data.cars.length : 0) + ' عنصر من ' + app.repo);
+    }).catch(function (e) {
+      $('#appState').textContent = 'خطأ';
+      $('#appState').className = 'pill bad';
+      $('#appErr').textContent = e.message;
+      log('خطأ في التحميل: ' + e.message);
+    });
+  }
+  function parseDataFile(text) {
+    var a = text.indexOf('{'), b = text.lastIndexOf('}');
+    if (a < 0 || b < 0) throw new Error('ملف البيانات غير مفهوم');
+    var obj = JSON.parse(text.slice(a, b + 1));
+    if (!obj.cars) obj.cars = [];
+    if (!obj.settings) obj.settings = {};
+    return obj;
+  }
+  function serialize() {
+    var app = currentApp();
+    return '/* ' + app.name + ' — بيانات التطبيق (تُدار من لوحة التحكم) */\n' +
+      'window.__SHOWROOM__ = ' + JSON.stringify(data, null, 2) + ';\n';
+  }
+  function updateDirty() {
+    $('#dirtyMeta').textContent = dirty
+      ? 'توجد تغييرات غير منشورة — اضغط نشر الآن'
+      : 'لا توجد تغييرات غير منشورة';
+    $('#dirtyMeta').style.color = dirty ? '#ffd48a' : '';
+  }
+
+  /* ---------- التبويبات ---------- */
+  function renderTabs() {
+    $('#tabs').innerHTML = store.apps.map(function (a) {
+      return '<button class="tab ' + (a.key === store.current ? 'on' : '') + '" data-key="' + esc(a.key) + '">' +
+        esc(a.name) + '</button>';
+    }).join('') + '<button class="tab" id="tabAdd">+</button>';
+    Array.prototype.forEach.call(document.querySelectorAll('.tab[data-key]'), function (b) {
+      b.addEventListener('click', function () {
+        if (dirty && !confirm('عندك تغييرات غير منشورة. تنتقل بدون نشر؟')) return;
+        store.current = b.getAttribute('data-key'); save();
+        renderTabs(); loadApp();
+      });
+    });
+    var ta = $('#tabAdd');
+    if (ta) ta.addEventListener('click', function () { openSettings(); });
+  }
+
+  /* ---------- عرض العناصر ---------- */
+  function renderItems() {
+    var app = currentApp();
+    var list = (data.cars || []);
+    if (!list.length) {
+      $('#items').innerHTML = '<div class="meta" style="text-align:center;padding:26px 10px">لا يوجد شيء بعد. اضغط «+ إضافة» لتبدأ.</div>';
+      return;
+    }
+    $('#items').innerHTML = list.map(function (it) {
+      var img = it.image
+        ? '<img class="thumb" src="' + esc(imgSrc(it.image)) + '" alt="" onerror="this.style.opacity=.25">'
+        : '<div class="thumb" style="display:grid;place-items:center;color:#4d4560;font-size:11px">بلا صورة</div>';
+      var sub = [it.year, it.category, it.place].filter(Boolean).join(' • ');
+      var price = it.price ? (it.price + ' ' + (it.priceUnit || '')) : '—';
+      return '<div class="item" data-id="' + esc(it.id) + '">' + img +
+        '<div class="grow">' +
+          '<p class="t">' + esc(it.title) + '</p>' +
+          '<p class="s">' + esc(sub) + '</p>' +
+        '</div>' +
+        '<div class="price">' + esc(price) + '</div>' +
+        '<div class="acts">' +
+          '<button class="mini" data-act="up" title="أعلى">↑</button>' +
+          '<button class="mini" data-act="down" title="أسفل">↓</button>' +
+          '<button class="mini" data-act="edit" title="تعديل">✎</button>' +
+          '<button class="mini del" data-act="del" title="حذف">🗑</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('.item'), function (row) {
+      var id = row.getAttribute('data-id');
+      Array.prototype.forEach.call(row.querySelectorAll('[data-act]'), function (b) {
+        b.addEventListener('click', function () {
+          var act = b.getAttribute('data-act');
+          if (act === 'edit') openItem(id);
+          else if (act === 'del') delItem(id);
+          else if (act === 'up') moveItem(id, -1);
+          else if (act === 'down') moveItem(id, 1);
+        });
+      });
+    });
+  }
+  function imgSrc(v) {
+    if (!v) return '';
+    if (/^https?:\/\//i.test(v)) return v;
+    var base = currentApp().webUrl || '';
+    if (!base) return v;
+    return base.replace(/\/$/, '') + '/' + String(v).replace(/^\//, '');
+  }
+  function findItem(id) {
+    for (var i = 0; i < data.cars.length; i++) if (String(data.cars[i].id) === String(id)) return data.cars[i];
+    return null;
+  }
+  function nextId() {
+    var m = 0;
+    (data.cars || []).forEach(function (c) { var v = parseInt(c.id, 10); if (!isNaN(v) && v > m) m = v; });
+    return m + 1;
+  }
+  function moveItem(id, dir) {
+    var i = data.cars.findIndex(function (c) { return String(c.id) === String(id); });
+    var j = i + dir;
+    if (i < 0 || j < 0 || j >= data.cars.length) return;
+    var tmp = data.cars[i]; data.cars[i] = data.cars[j]; data.cars[j] = tmp;
+    dirty = true; updateDirty(); renderItems();
+  }
+  function delItem(id) {
+    var it = findItem(id);
+    if (!it) return;
+    if (!confirm('حذف «' + it.title + '»؟')) return;
+    data.cars = data.cars.filter(function (c) { return String(c.id) !== String(id); });
+    dirty = true; updateDirty(); renderItems(); toast('تم الحذف — لا تنسَ النشر', 'ok');
+  }
+
+  /* ---------- نافذة العنصر ---------- */
+  function openItem(id) {
+    editingId = id || null;
+    var it = id ? findItem(id) : null;
+    $('#sheetTitle').textContent = it ? ('تعديل: ' + it.title) : ('إضافة ' + currentApp().itemLabel);
+    var f = {
+      fTitle: it ? it.title : '',
+      fYear: it ? it.year : '',
+      fCategory: it ? it.category : '',
+      fBadge: it ? it.badge : '',
+      fPlace: it ? it.place : '',
+      fPrice: it ? it.price : '',
+      fPriceNote: it ? it.priceNote : '',
+      fDealer: it ? it.dealer : '',
+      fCommission: it ? it.commission : '',
+      fCommissionNote: it ? it.commissionNote : '',
+      fImage: it ? it.image : '',
+      fSpecs: it && it.specs ? it.specs.join('\n') : ''
+    };
+    Object.keys(f).forEach(function (k) { $('#' + k).value = f[k] || ''; });
+    $('#fPriceUnit').value = (it && it.priceUnit) ? it.priceUnit : 'مليون';
+    pendingImage = null;
+    setPreview(it ? it.image : '');
+    $('#itemErr').textContent = '';
+    $('#sheet').classList.remove('hide');
+  }
+  function setPreview(v) {
+    $('#imgPrev').src = v ? imgSrc(v) : 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 300 150%27%3E%3Crect width=%27300%27 height=%27150%27 fill=%27%230e0c16%27/%3E%3Ctext x=%27150%27 y=%2780%27 text-anchor=%27middle%27 fill=%27%235d5470%27 font-size=%2714%27 font-family=%27sans-serif%27%3Eلا صورة%3C/text%3E%3C/svg%3E';
+  }
+  $('#sheetClose').addEventListener('click', function () { $('#sheet').classList.add('hide'); });
+  $('#btnCancelItem').addEventListener('click', function () { $('#sheet').classList.add('hide'); });
+  $('#fImage').addEventListener('input', function () { setPreview($('#fImage').value); });
+  $('#btnClearImg').addEventListener('click', function () { $('#fImage').value = ''; pendingImage = null; setPreview(''); });
+  $('#btnPickImg').addEventListener('click', function () { $('#imgFile').click(); });
+  $('#imgFile').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    compress(file).then(function (out) {
+      pendingImage = out;
+      $('#imgPrev').src = out.dataUrl;
+      toast('تم تجهيز الصورة (' + Math.round(out.blob.length / 1024) + ' كيلوبايت)', 'ok');
+    }).catch(function (err) { toast(err.message, 'bad'); });
+    e.target.value = '';
+  });
+  function compress(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var max = 1200;
+          var scale = Math.min(1, max / Math.max(img.width, img.height));
+          var w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+          var cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          var dataUrl = cv.toDataURL('image/jpeg', 0.82);
+          var b64 = dataUrl.split(',')[1];
+          var bin = atob(b64);
+          var bytes = new Uint8Array(bin.length);
+          for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          resolve({ dataUrl: dataUrl, base64: b64, bytes: bytes, blob: bytes });
+        };
+        img.onerror = function () { reject(new Error('الصورة غير صالحة')); };
+        img.src = reader.result;
+      };
+      reader.onerror = function () { reject(new Error('تعذر قراءة الملف')); };
+      reader.readAsDataURL(file);
+    });
+  }
+  function slugify(s) {
+    return String(s || 'img').toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'img';
+  }
+  $('#btnSaveItem').addEventListener('click', function () {
+    var err = $('#itemErr');
+    err.textContent = '';
+    var title = $('#fTitle').value.trim();
+    var price = $('#fPrice').value.trim();
+    if (!title) { err.textContent = 'العنوان مطلوب'; return; }
+    var item = {
+      id: editingId ? (findItem(editingId) || {}).id : nextId(),
+      title: title,
+      year: $('#fYear').value.trim(),
+      category: $('#fCategory').value.trim(),
+      badge: $('#fBadge').value.trim(),
+      image: $('#fImage').value.trim(),
+      imageNote: '',
+      price: price,
+      priceUnit: $('#fPriceUnit').value,
+      priceNote: $('#fPriceNote').value.trim(),
+      commission: $('#fCommission').value.trim(),
+      commissionNote: $('#fCommissionNote').value.trim(),
+      place: $('#fPlace').value.trim(),
+      dealer: $('#fDealer').value.trim(),
+      specs: $('#fSpecs').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
+    };
+    // صور مرفوعة من الجهاز: نحفظها محلياً للرفع عند النشر
+    if (pendingImage) {
+      var name = 'img/' + slugify(title) + '-' + Date.now().toString().slice(-5) + '.jpg';
+      item.image = name;
+      pendingImages[name] = pendingImage.base64;
+    }
+    if (editingId) {
+      for (var i = 0; i < data.cars.length; i++) {
+        if (String(data.cars[i].id) === String(editingId)) { data.cars[i] = item; break; }
+      }
+    } else {
+      data.cars.push(item);
+    }
+    dirty = true;
+    $('#sheet').classList.add('hide');
+    renderItems(); updateDirty();
+    toast('تم الحفظ — اضغط «نشر الآن» ليظهر في التطبيق', 'ok');
+  });
+  var pendingImages = {};
+
+  /* ---------- إعدادات المتجر ---------- */
+  function renderSettings() {
+    var s = (data && data.settings) || {};
+    var rows = [
+      ['الاسم', s.name], ['الوصف', s.tagline], ['واتساب', s.whatsapp], ['هاتف', s.phone],
+      ['نص الواجهة', s.heroText], ['ملاحظة', s.heroNote], ['العنوان', s.address]
+    ].filter(function (r) { return r[1]; });
+    $('#settingsView').innerHTML = rows.length
+      ? rows.map(function (r) { return '<div>' + esc(r[0]) + '</div><div>' + esc(r[1]) + '</div>'; }).join('')
+      : '<div>—</div><div>لا توجد بيانات</div>';
+  }
+  $('#btnEditSettings').addEventListener('click', function () {
+    var s = (data && data.settings) || {};
+    var name = prompt('اسم التطبيق/المتجر', s.name || '');
+    if (name === null) return;
+    var wa = prompt('رقم الواتساب (مثال 249903263031)', s.whatsapp || '');
+    if (wa === null) return;
+    var tag = prompt('الوصف المختصر', s.tagline || '');
+    if (tag === null) return;
+    data.settings = data.settings || {};
+    data.settings.name = name;
+    data.settings.whatsapp = wa;
+    data.settings.tagline = tag;
+    dirty = true; renderSettings(); updateDirty(); toast('تم التعديل — لا تنسَ النشر', 'ok');
+  });
+
+  /* ---------- النشر ---------- */
+  $('#btnReload').addEventListener('click', function () {
+    if (dirty && !confirm('توجد تغييرات غير منشورة، ستضيع. أكمل؟')) return;
+    pendingImages = {};
+    loadApp();
+  });
+  $('#btnOpenApp').addEventListener('click', function () {
+    var u = currentApp().webUrl;
+    if (!u) { toast('هذا التطبيق لم يُنشأ بعد', 'bad'); return; }
+    window.open(u, '_blank');
+  });
+  $('#btnAdd').addEventListener('click', function () { openItem(null); });
+
+  function putFile(path, base64, message) {
+    var app = currentApp();
+    var url = '/repos/' + store.owner + '/' + app.repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/');
+    return gh('GET', url + '?ref=' + (app.branch || 'main')).then(function (cur) {
+      var body = { message: message, content: base64, branch: app.branch || 'main' };
+      if (cur && cur.sha) body.sha = cur.sha;
+      return gh('PUT', url, body);
+    });
+  }
+  $('#btnPublish').addEventListener('click', function () {
+    var app = currentApp();
+    var btn = this;
+    if (!store.token) { toast('أضف توكن GitHub من الإعدادات أولاً', 'bad'); return; }
+    btn.disabled = true;
+    var names = Object.keys(pendingImages);
+    var chain = Promise.resolve();
+    names.forEach(function (p) {
+      chain = chain.then(function () {
+        log('رفع صورة: ' + p);
+        return putFile(p, pendingImages[p], 'صورة من لوحة التحكم');
+      });
+    });
+    chain.then(function () {
+      log('نشر البيانات: ' + app.dataPath);
+      return putFile(app.dataPath, b64enc(serialize()), 'تحديث من لوحة التحكم: ' + new Date().toISOString().slice(0, 16));
+    }).then(function (res) {
+      pendingImages = {};
+      dirty = false; updateDirty();
+      if (res && res.content) sha = res.content.sha;
+      log('✔ تم النشر بنجاح على ' + app.repo);
+      toast('تم النشر — التطبيق يتحدّث خلال ثوانٍ', 'ok');
+      btn.disabled = false;
+    }).catch(function (e) {
+      log('✖ فشل النشر: ' + e.message);
+      toast('فشل النشر: ' + e.message, 'bad');
+      btn.disabled = false;
+    });
+  });
+
+  /* ---------- نافذة الإعدادات ---------- */
+  function openSettings() {
+    $('#sOwner').value = store.owner;
+    $('#sToken').value = store.token;
+    renderAppsEditor();
+    $('#sheet2').classList.remove('hide');
+  }
+  $('#btnSettings').addEventListener('click', openSettings);
+  $('#sheet2Close').addEventListener('click', function () { $('#sheet2').classList.add('hide'); });
+  function renderAppsEditor() {
+    $('#appsEditor').innerHTML = store.apps.map(function (a, i) {
+      return '<div style="border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px">' +
+        '<div class="row" style="gap:8px"><input data-i="' + i + '" data-f="name" value="' + esc(a.name) + '" style="flex:1">' +
+        '<button class="mini del" data-rm="' + i + '">🗑</button></div>' +
+        '<div class="row" style="gap:8px;margin-top:8px">' +
+          '<input data-i="' + i + '" data-f="repo" value="' + esc(a.repo) + '" placeholder="اسم المستودع">' +
+          '<input data-i="' + i + '" data-f="webUrl" value="' + esc(a.webUrl || '') + '" placeholder="رابط التطبيق">' +
+        '</div>' +
+        '<div class="row" style="gap:8px;margin-top:8px">' +
+          '<input data-i="' + i + '" data-f="dataPath" value="' + esc(a.dataPath) + '" placeholder="data.js">' +
+          '<input data-i="' + i + '" data-f="itemLabel" value="' + esc(a.itemLabel || '') + '" placeholder="اسم العنصر">' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    Array.prototype.forEach.call($('#appsEditor').querySelectorAll('input'), function (inp) {
+      inp.addEventListener('input', function () {
+        var i = +inp.getAttribute('data-i'), f = inp.getAttribute('data-f');
+        store.apps[i][f] = inp.value;
+      });
+    });
+    Array.prototype.forEach.call($('#appsEditor').querySelectorAll('[data-rm]'), function (b) {
+      b.addEventListener('click', function () {
+        var i = +b.getAttribute('data-rm');
+        if (store.apps.length <= 1) return;
+        if (!confirm('حذف التطبيق «' + store.apps[i].name + '» من اللوحة؟ (لن يُحذف المستودع)')) return;
+        store.apps.splice(i, 1);
+        if (!store.apps.some(function (a) { return a.key === store.current; })) store.current = store.apps[0].key;
+        save(); renderAppsEditor(); renderTabs();
+      });
+    });
+  }
+  $('#btnAddApp').addEventListener('click', function () {
+    var name = prompt('اسم التطبيق الجديد (مثال: الجوالات)');
+    if (!name) return;
+    var repo = prompt('اسم مستودع GitHub للتطبيق (مثال: Anfal-Phones)');
+    if (!repo) return;
+    var key = 'app' + Date.now().toString().slice(-6);
+    store.apps.push({ key: key, name: name, repo: repo, branch: 'main', dataPath: 'data.js', webUrl: '', itemLabel: 'منتج', color: '#8b6cf0' });
+    save(); renderAppsEditor(); renderTabs();
+    toast('أُضيف — احفظ الإعدادات', 'ok');
+  });
+  $('#btnSaveSettings').addEventListener('click', function () {
+    store.owner = $('#sOwner').value.trim() || store.owner;
+    store.token = $('#sToken').value.trim();
+    save();
+    $('#setMsg').textContent = 'تم حفظ الإعدادات في هذا المتصفح.';
+    toast('تم الحفظ', 'ok');
+    setTimeout(function () { $('#setMsg').textContent = ''; }, 3000);
+  });
+  $('#btnExport').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify({ data: data, app: currentApp() }, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'backup-' + currentApp().key + '.json';
+    a.click();
+  });
+  $('#btnImport').addEventListener('click', function () { $('#importFile').click(); });
+  $('#importFile').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var j = JSON.parse(r.result);
+        if (!j.data || !Array.isArray(j.data.cars)) throw new Error('ملف غير صالح');
+        data = j.data; dirty = true;
+        renderItems(); renderSettings(); updateDirty();
+        toast('تم الاستيراد — راجع ثم انشر', 'ok');
+      } catch (err) { toast('الملف غير صالح', 'bad'); }
+    };
+    r.readAsText(f);
+    e.target.value = '';
+  });
+
+  /* ---------- بدء ---------- */
+  if (store.pinHash) showLock(); else showLock();
+  window.addEventListener('beforeunload', function (e) {
+    if (dirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+})();
+</script>
+</body>
+</html>
